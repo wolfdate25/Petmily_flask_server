@@ -198,10 +198,11 @@ class HelloWorld(Resource):
         uploaded_file = args['file']
         path = f'imgs/dog{self.file_name}.jpg'
         uploaded_file.save(path)
-        img = Image.open(path)
-        output = model(img.unsqueeze(0).to(device))
+        img = Image.open(path).convert('RGB')
+        img = self.transformer(img)
+        output = dog_model(img.unsqueeze(0).to(device))
         top3 = torch.topk(output, 3, dim=1)
-        predict_list = [int(x) for x in top3.indices.squeeze()]  # find dog breed
+        predict_list = [self.classes[x] for x in top3.indices.squeeze()]  # find dog breed
         self.file_name = (self.file_name + 1) % 20
         # GET 요청시 리턴 값에 해당 하는 dict를 JSON 형태로 반환
         return {"predicts": predict_list}
@@ -226,7 +227,7 @@ class HelloWorld(Resource):
         path = f'imgs/cat{self.file_name}.jpg'
         uploaded_file.save(path)
         img = Image.open(path)
-        output = model(img.unsqueeze(0).to(device))
+        output = cat_model(img.unsqueeze(0).to(device))
         top3 = torch.topk(output, 3, dim=1)
         predict_list = [int(x) for x in top3.indices.squeeze()]  # find dog breed
         self.file_name = (self.file_name + 1) % 20
@@ -269,4 +270,4 @@ class HelloWorld(Resource):
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0', port=8081)
+    app.run(debug=True, host='0.0.0.0', port=8080)
