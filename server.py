@@ -15,7 +15,7 @@ from PIL import Image
 # Choose to use a config and initialize the detector
 config = 'configs/swin/mask_rcnn_swin-s-p4-w7_fpn_fp16_ms-crop-3x_coco.py'
 # Setup a checkpoint file to load
-checkpoint = 'checkpoints/mask_rcnn_swin-s-p4-w7_fpn_fp16_ms-crop-3x_coco_20210903_104808-b92c91f1.pth'
+checkpoint = 'models/mask_rcnn_swin-s-p4-w7_fpn_fp16_ms-crop-3x_coco_20210903_104808-b92c91f1.pth'
 # initialize the detector
 model = init_detector(config, checkpoint, device='cpu:0')
 """
@@ -23,9 +23,15 @@ model = init_detector(config, checkpoint, device='cpu:0')
 """
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 # load a pre=trained model for coatnet
-model = torch.load('./savemodel/dogbreed2.pth')
-model.to(device)
-model.eval()
+dog_model = torch.load('models/dogbreed2.pth', map_location=device)
+dog_model.to(device)
+dog_model.eval()
+cat_model = torch.load('models/catbreed3.pth', map_location=device)
+cat_model.to(device)
+cat_model.eval()
+emotion_model = torch.load('models/emotion1.pth', map_location=device)
+emotion_model.to(device)
+emotion_model.eval()
 
 app = Flask(__name__)  # Flask 객체 선언, 파라미터로 어플리케이션 패키지의 이름을 넣어줌.
 api = Api(app)  # Flask 객체에 Api 객체 등록
@@ -191,6 +197,60 @@ class HelloWorld(Resource):
         # 이미지 전송 받은 파일을 이미지 파일로 변환
         uploaded_file = args['file']
         path = f'imgs/dog{self.file_name}.jpg'
+        uploaded_file.save(path)
+        img = Image.open(path)
+        output = model(img.unsqueeze(0).to(device))
+        top3 = torch.topk(output, 3, dim=1)
+        predict_list = [int(x) for x in top3.indices.squeeze()]  # find dog breed
+        self.file_name = (self.file_name + 1) % 20
+        # GET 요청시 리턴 값에 해당 하는 dict를 JSON 형태로 반환
+        return {"predicts": predict_list}
+
+@api.route('/predict/breed/cat')  # 데코레이터 이용, '/predict' 경로에 클래스 등록
+class HelloWorld(Resource):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.file_name = 0
+        self.transformer = transforms.Compose([
+            transforms.Resize((224, 224)),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        ])
+        self.classes = [] # 작성 필요
+
+    def post(self):
+        # 이미지 전송 받기
+        args = upload_parser.parse_args()
+        # 이미지 전송 받은 파일을 이미지 파일로 변환
+        uploaded_file = args['file']
+        path = f'imgs/cat{self.file_name}.jpg'
+        uploaded_file.save(path)
+        img = Image.open(path)
+        output = model(img.unsqueeze(0).to(device))
+        top3 = torch.topk(output, 3, dim=1)
+        predict_list = [int(x) for x in top3.indices.squeeze()]  # find dog breed
+        self.file_name = (self.file_name + 1) % 20
+        # GET 요청시 리턴 값에 해당 하는 dict를 JSON 형태로 반환
+        return {"predicts": predict_list}
+
+@api.route('/predict/emotion')  # 데코레이터 이용, '/predict' 경로에 클래스 등록
+class HelloWorld(Resource):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.file_name = 0
+        self.transformer = transforms.Compose([
+            transforms.Resize((224, 224)),
+            transforms.ToTensor(),
+            transforms.Normalize([0.5], [0.5])
+        ])
+        self.classes = [] # 작성 필요
+
+    def post(self):
+        # 이미지 전송 받기
+        args = upload_parser.parse_args()
+        # 이미지 전송 받은 파일을 이미지 파일로 변환
+        uploaded_file = args['file']
+        path = f'imgs/emotion{self.file_name}.jpg'
         uploaded_file.save(path)
         img = Image.open(path)
         output = model(img.unsqueeze(0).to(device))
