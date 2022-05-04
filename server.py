@@ -206,7 +206,7 @@ class DistinguishDogBreed(Resource):
         uploaded_file.save(path)
         img = Image.open(path).convert('RGB')
         result = inference_detector(model, img)
-        predict_list = {"error": "개를 찾을 수 없음"}
+        json_object = {"error": "개를 찾을 수 없음"}
         if any(result[0][16][:, 4] > 0.3):
             position = [int(i) for i in result[0][16][0]]
             img = img.crop(position[:-1])
@@ -214,9 +214,13 @@ class DistinguishDogBreed(Resource):
             output = dog_model(img.unsqueeze(0).to(device))
             top3 = torch.topk(output, 3, dim=1)
             predict_list = [self.classes[x] for x in top3.indices.squeeze()]  # find dog breed
+            json_object = {"crop_position": position[:-1],
+                           "breed": {1: {predict_list[0]: top3.values.squeeze()[0]},
+                                     2: {predict_list[1]: top3.values.squeeze()[1]},
+                                     3: {predict_list[2]: top3.values.squeeze()[2]}}}
         dog_file_name = (dog_file_name + 1) % 20
         # GET 요청시 리턴 값에 해당 하는 dict를 JSON 형태로 반환
-        return predict_list
+        return json_object
 
 
 @api.route('/predict/breed/cat')  # 데코레이터 이용, '/predict' 경로에 클래스 등록
@@ -243,7 +247,7 @@ class DistinguishCatBreed(Resource):
         uploaded_file.save(path)
         img = Image.open(path).convert('RGB')
         result = inference_detector(model, img)
-        predict_list = {"error": "고양이를를 찾을 수 없음"}
+        json_object = {"error": "고양이를를 찾을 수 없음"}
         if any(result[0][15][:, 4] > 0.3):
             position = [int(i) for i in result[0][15][0]]
             img = img.crop(position[:-1])
@@ -251,9 +255,13 @@ class DistinguishCatBreed(Resource):
             output = dog_model(img.unsqueeze(0).to(device))
             top3 = torch.topk(output, 3, dim=1)
             predict_list = [self.classes[x] for x in top3.indices.squeeze()]  # find cat breed
+            json_object = {"crop_position": position[:-1],
+                           "breed": {1: {predict_list[0]: top3.values.squeeze()[0]},
+                                     2: {predict_list[1]: top3.values.squeeze()[1]},
+                                     3: {predict_list[2]: top3.values.squeeze()[2]}}}
         cat_file_name = (cat_file_name + 1) % 20
         # GET 요청시 리턴 값에 해당 하는 dict를 JSON 형태로 반환
-        return predict_list
+        return json_object
 
 
 @api.route('/predict/emotion')  # 데코레이터 이용, '/predict' 경로에 클래스 등록
@@ -283,14 +291,16 @@ class GuessEmotion(Resource):
             img = self.transformer(img)
             img = img.crop(position[:-1])
             output = model(img.unsqueeze(0).to(device))
-            json_object = {"crop_position": position[:-1], "emotion": output}
+            json_object = {"category": "cat", "crop_position": position[:-1],
+                           "emotion": {"angry": output[0], "sad": output[1], "happy": output[2]}}
             return json_object
         if any(result[0][16][:, 4] > 0.3):
             position = [int(i) for i in result[0][16][0]]
             img = self.transformer(img)
             img = img.crop(position[:-1])
             output = model(img.unsqueeze(0).to(device))
-            json_object = {"crop_position": position[:-1], "emotion": output}
+            json_object = {"category": "dog", "crop_position": position[:-1],
+                           "emotion": {"angry": output[0], "sad": output[1], "happy": output[2]}}
             return json_object
 
         emotion_file_name = (emotion_file_name + 1) % 20
