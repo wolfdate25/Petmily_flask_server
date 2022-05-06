@@ -205,7 +205,7 @@ class DistinguishDogBreed(Resource):
         path = f'imgs/dog{dog_file_name}.jpg'
         uploaded_file.save(path)
         img = Image.open(path).convert('RGB')
-        result = inference_detector(model, img)
+        result = inference_detector(model, path)
         json_object = {"error": "개를 찾을 수 없음"}
         if any(result[0][16][:, 4] > 0.3):
             position = [int(i) for i in result[0][16][0]]
@@ -214,10 +214,11 @@ class DistinguishDogBreed(Resource):
             output = dog_model(img.unsqueeze(0).to(device))
             top3 = torch.topk(output, 3, dim=1)
             predict_list = [self.classes[x] for x in top3.indices.squeeze()]  # find dog breed
+            values_list = [float(x) for x in top3.values.squeeze()]
             json_object = {"crop_position": position[:-1],
-                           "breed": {1: {predict_list[0]: top3.values.squeeze()[0]},
-                                     2: {predict_list[1]: top3.values.squeeze()[1]},
-                                     3: {predict_list[2]: top3.values.squeeze()[2]}}}
+                           "breed": {1: {predict_list[0]: values_list[0]},
+                                     2: {predict_list[1]: values_list[1]},
+                                     3: {predict_list[2]: values_list[2]}}}
         dog_file_name = (dog_file_name + 1) % 20
         # GET 요청시 리턴 값에 해당 하는 dict를 JSON 형태로 반환
         return json_object
@@ -246,7 +247,7 @@ class DistinguishCatBreed(Resource):
         path = f'imgs/cat{self.cat_file_name}.jpg'
         uploaded_file.save(path)
         img = Image.open(path).convert('RGB')
-        result = inference_detector(model, img)
+        result = inference_detector(model, path)
         json_object = {"error": "고양이를를 찾을 수 없음"}
         if any(result[0][15][:, 4] > 0.3):
             position = [int(i) for i in result[0][15][0]]
@@ -255,10 +256,11 @@ class DistinguishCatBreed(Resource):
             output = dog_model(img.unsqueeze(0).to(device))
             top3 = torch.topk(output, 3, dim=1)
             predict_list = [self.classes[x] for x in top3.indices.squeeze()]  # find cat breed
+            values_list = [float(x) for x in top3.values.squeeze()]
             json_object = {"crop_position": position[:-1],
-                           "breed": {1: {predict_list[0]: top3.values.squeeze()[0]},
-                                     2: {predict_list[1]: top3.values.squeeze()[1]},
-                                     3: {predict_list[2]: top3.values.squeeze()[2]}}}
+                           "breed": {1: {predict_list[0]: values_list[0]},
+                                     2: {predict_list[1]: values_list[1]},
+                                     3: {predict_list[2]: values_list[2]}}}
         cat_file_name = (cat_file_name + 1) % 20
         # GET 요청시 리턴 값에 해당 하는 dict를 JSON 형태로 반환
         return json_object
@@ -283,24 +285,26 @@ class GuessEmotion(Resource):
         uploaded_file = args['file']
         path = f'imgs/emotion{emotion_file_name}.jpg'
         uploaded_file.save(path)
-        img = Image.open(path).convert('RGB')
-        result = inference_detector(model, img)
+        img = Image.open(path).convert('L')
+        result = inference_detector(model, path)
         json_object = {"error": "개와 고양이를 찾을 수 없음"}
         if any(result[0][15][:, 4] > 0.3):
             position = [int(i) for i in result[0][15][0]]
-            img = self.transformer(img)
             img = img.crop(position[:-1])
-            output = model(img.unsqueeze(0).to(device))
+            img = self.transformer(img)
+            output = emotion_model(img.unsqueeze(0).to(device))
+            outputs = [float(x) for x in output[0]]
             json_object = {"category": "cat", "crop_position": position[:-1],
-                           "emotion": {"angry": output[0], "sad": output[1], "happy": output[2]}}
+                           "emotion": {"angry": outputs[0], "sad": outputs[1], "happy": outputs[2]}}
             return json_object
         if any(result[0][16][:, 4] > 0.3):
             position = [int(i) for i in result[0][16][0]]
-            img = self.transformer(img)
             img = img.crop(position[:-1])
-            output = model(img.unsqueeze(0).to(device))
+            img = self.transformer(img)
+            output = emotion_model(img.unsqueeze(0).to(device))
+            outputs = [float(x) for x in output[0]]
             json_object = {"category": "dog", "crop_position": position[:-1],
-                           "emotion": {"angry": output[0], "sad": output[1], "happy": output[2]}}
+                           "emotion": {"angry": outputs[0], "sad": outputs[1], "happy": outputs[2]}}
             return json_object
 
         emotion_file_name = (emotion_file_name + 1) % 20
