@@ -244,7 +244,7 @@ class DistinguishCatBreed(Resource):
         args = upload_parser.parse_args()
         # 이미지 전송 받은 파일을 이미지 파일로 변환
         uploaded_file = args['file']
-        path = f'imgs/cat{self.cat_file_name}.jpg'
+        path = f'imgs/cat{cat_file_name}.jpg'
         uploaded_file.save(path)
         img = Image.open(path).convert('RGB')
         result = inference_detector(model, path)
