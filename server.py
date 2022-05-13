@@ -297,7 +297,9 @@ class DistinguishCatBreed(Resource):
         # GET 요청시 리턴 값에 해당 하는 dict를 JSON 형태로 반환
         return json_object
     def get(self):
-        path = request.form.get("path")
+        path = request.args.get('path')
+        if path is None:
+            return {"error": "The parameter path is not exist."}
         img = Image.open(path).convert('RGB')
         result = inference_detector(model, path)
         json_object = {"error": "고양이를를 찾을 수 없음"}
@@ -366,7 +368,6 @@ class GuessEmotion(Resource):
         path = request.args.get('path')
         if path is None:
             return {"error": "The parameter path is not exist."}
-        uploaded_file.save(path)
         img = Image.open(path).convert('L')
         result = inference_detector(model, path)
         json_object = {"error": "개와 고양이를 찾을 수 없음"}
