@@ -46,7 +46,7 @@ emotion_file_name = 0
 detect_file_name = 0
 
 
-@api.route('/detect', methods=['GET','POST']) 
+@api.route('/detect', methods=['GET', 'POST'])
 class FindCatsAndDogs(Resource):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -59,23 +59,44 @@ class FindCatsAndDogs(Resource):
         uploaded_file = args['file']
         uploaded_file.save(f'imgs/find{self.file_name}.jpg')
         result = inference_detector(model, './imgs/find' + str(self.file_name) + '.jpg')
-        find = any([any(result[0][15].T[4] > 0.3), any(result[0][16].T[4] > 0.3)])  # find cats and dogs
+        find = "false"
+        if all([any(result[0][15].T[4] > 0.3), any(result[0][16].T[4] > 0.3)]):  # 개와 고양이 모두가 있으면
+            if (result[0][15].T[4][0] < result[0][16].T[4][0]):  # 고양이가 개보다 확률 up?
+                find = "cat"
+            else:  # 개가 확률이 더 높다
+                find = "dog"
+        else:
+            if any(result[0][15].T[4] > 0.3):  # 고양이가 있으면
+                find = "cat"
+            if any(result[0][16].T[4] > 0.3):  # 개가 있으면
+                find = "dog"
+
         self.file_name = (self.file_name + 1) % 20
         # GET 요청시 리턴 값에 해당 하는 dict를 JSON 형태로 반환
         return {"detected": find}
+
     def get(self):
         path = request.args.get('path')
         if path is None:
             return {"error": "The parameter path is not exist."}
-        print(f"전송받은 : {path}")
         result = inference_detector(model, path)
-        find = any([any(result[0][15].T[4] > 0.3), any(result[0][16].T[4] > 0.3)])  # find cats and dogs
+        find = "false"
+        if all([any(result[0][15].T[4] > 0.3), any(result[0][16].T[4] > 0.3)]):  # 개와 고양이 모두가 있으면
+            if (result[0][15].T[4][0] < result[0][16].T[4][0]):  # 고양이가 개보다 확률 up?
+                find = "cat"
+            else:  # 개가 확률이 더 높다
+                find = "dog"
+        else:
+            if any(result[0][15].T[4] > 0.3):  # 고양이가 있으면
+                find = "cat"
+            if any(result[0][16].T[4] > 0.3):  # 개가 있으면
+                find = "dog"
 
         # GET 요청시 리턴 값에 해당 하는 dict를 JSON 형태로 반환
         return {"detected": find}
 
 
-@api.route('/predict/breed/dog', methods=['GET','POST'])  
+@api.route('/predict/breed/dog', methods=['GET', 'POST'])
 class DistinguishDogBreed(Resource):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -232,6 +253,7 @@ class DistinguishDogBreed(Resource):
         dog_file_name = (dog_file_name + 1) % 20
         # GET 요청시 리턴 값에 해당 하는 dict를 JSON 형태로 반환
         return json_object
+
     def get(self):
         path = request.args.get('path')
         if path is None:
@@ -296,6 +318,7 @@ class DistinguishCatBreed(Resource):
         cat_file_name = (cat_file_name + 1) % 20
         # GET 요청시 리턴 값에 해당 하는 dict를 JSON 형태로 반환
         return json_object
+
     def get(self):
         path = request.args.get('path')
         if path is None:
@@ -320,7 +343,7 @@ class DistinguishCatBreed(Resource):
         return json_object
 
 
-@api.route('/predict/emotion', methods=['GET','POST'])  # 데코레이터 이용, '/predict' 경로에 클래스 등록
+@api.route('/predict/emotion', methods=['GET', 'POST'])  # 데코레이터 이용, '/predict' 경로에 클래스 등록
 class GuessEmotion(Resource):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -341,14 +364,15 @@ class GuessEmotion(Resource):
         uploaded_file.save(path)
         img = Image.open(path).convert('L')
         result = inference_detector(model, path)
-        json_object = {"error": "개와 고양이를 찾을 수 없음"}
+        json_object = {"message": "Can't find cat or dog"}
         if any(result[0][15][:, 4] > 0.3):
             position = [int(i) for i in result[0][15][0]]
             img = img.crop(position[:-1])
             img = self.transformer(img)
             output = emotion_model(img.unsqueeze(0).to(device))
             outputs = [float(x) for x in output[0]]
-            json_object = {"category": "cat", "crop_position": position[:-1],
+            json_object = {"message": "success!",
+                           "category": "cat", "crop_position": position[:-1],
                            "emotion": {"angry": outputs[0], "sad": outputs[1], "happy": outputs[2]}}
             return json_object
         if any(result[0][16][:, 4] > 0.3):
@@ -357,27 +381,30 @@ class GuessEmotion(Resource):
             img = self.transformer(img)
             output = emotion_model(img.unsqueeze(0).to(device))
             outputs = [float(x) for x in output[0]]
-            json_object = {"category": "dog", "crop_position": position[:-1],
+            json_object = {"message": "success!",
+                           "category": "dog", "crop_position": position[:-1],
                            "emotion": {"angry": outputs[0], "sad": outputs[1], "happy": outputs[2]}}
             return json_object
 
         emotion_file_name = (emotion_file_name + 1) % 20
         # GET 요청시 리턴 값에 해당 하는 dict를 JSON 형태로 반환
         return json_object
+
     def get(self):
         path = request.args.get('path')
         if path is None:
-            return {"error": "The parameter path is not exist."}
+            return {"message": "The parameter path is not exist."}
         img = Image.open(path).convert('L')
         result = inference_detector(model, path)
-        json_object = {"error": "개와 고양이를 찾을 수 없음"}
+        json_object = {"message": "Can't find cat or dog"}
         if any(result[0][15][:, 4] > 0.3):
             position = [int(i) for i in result[0][15][0]]
             img = img.crop(position[:-1])
             img = self.transformer(img)
             output = emotion_model(img.unsqueeze(0).to(device))
             outputs = [float(x) for x in output[0]]
-            json_object = {"category": "cat", "crop_position": position[:-1],
+            json_object = {"message": "success!",
+                           "category": "cat", "crop_position": position[:-1],
                            "emotion": {"angry": outputs[0], "sad": outputs[1], "happy": outputs[2]}}
             return json_object
         if any(result[0][16][:, 4] > 0.3):
@@ -386,10 +413,10 @@ class GuessEmotion(Resource):
             img = self.transformer(img)
             output = emotion_model(img.unsqueeze(0).to(device))
             outputs = [float(x) for x in output[0]]
-            json_object = {"category": "dog", "crop_position": position[:-1],
+            json_object = {"message": "success!",
+                           "category": "dog", "crop_position": position[:-1],
                            "emotion": {"angry": outputs[0], "sad": outputs[1], "happy": outputs[2]}}
             return json_object
-
 
         # GET 요청시 리턴 값에 해당 하는 dict를 JSON 형태로 반환
         return json_object
