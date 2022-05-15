@@ -247,9 +247,9 @@ class DistinguishDogBreed(Resource):
             predict_list = [self.classes[x] for x in top3.indices.squeeze()]  # find dog breed
             values_list = [float(x) for x in top3.values.squeeze()]
             json_object = {"crop_position": position[:-1],
-                           "breed": {1: {predict_list[0]: values_list[0]},
-                                     2: {predict_list[1]: values_list[1]},
-                                     3: {predict_list[2]: values_list[2]}}}
+                           "top3": {{"breed": predict_list[0], "value": values_list[0]},
+                                    {"breed": predict_list[1], "value": values_list[1]},
+                                    {"breed": predict_list[2], "value": values_list[2]}}}
         dog_file_name = (dog_file_name + 1) % 20
         # GET 요청시 리턴 값에 해당 하는 dict를 JSON 형태로 반환
         return json_object
@@ -270,9 +270,9 @@ class DistinguishDogBreed(Resource):
             predict_list = [self.classes[x] for x in top3.indices.squeeze()]  # find dog breed
             values_list = [float(x) for x in top3.values.squeeze()]
             json_object = {"crop_position": position[:-1],
-                           "breed": {1: {predict_list[0]: values_list[0]},
-                                     2: {predict_list[1]: values_list[1]},
-                                     3: {predict_list[2]: values_list[2]}}}
+                           "top3": {{"breed": predict_list[0], "value": values_list[0]},
+                                    {"breed": predict_list[1], "value": values_list[1]},
+                                    {"breed": predict_list[2], "value": values_list[2]}}}
 
         # GET 요청시 리턴 값에 해당 하는 dict를 JSON 형태로 반환
         return json_object
@@ -312,9 +312,9 @@ class DistinguishCatBreed(Resource):
             predict_list = [self.classes[x] for x in top3.indices.squeeze()]  # find cat breed
             values_list = [float(x) for x in top3.values.squeeze()]
             json_object = {"crop_position": position[:-1],
-                           "breed": {1: {predict_list[0]: values_list[0]},
-                                     2: {predict_list[1]: values_list[1]},
-                                     3: {predict_list[2]: values_list[2]}}}
+                           "top3": {{"breed": predict_list[0], "value": values_list[0]},
+                                    {"breed": predict_list[1], "value": values_list[1]},
+                                    {"breed": predict_list[2], "value": values_list[2]}}}
         cat_file_name = (cat_file_name + 1) % 20
         # GET 요청시 리턴 값에 해당 하는 dict를 JSON 형태로 반환
         return json_object
@@ -335,9 +335,9 @@ class DistinguishCatBreed(Resource):
             predict_list = [self.classes[x] for x in top3.indices.squeeze()]  # find cat breed
             values_list = [float(x) for x in top3.values.squeeze()]
             json_object = {"crop_position": position[:-1],
-                           "breed": {1: {predict_list[0]: values_list[0]},
-                                     2: {predict_list[1]: values_list[1]},
-                                     3: {predict_list[2]: values_list[2]}}}
+                           "top3": {{"breed": predict_list[0], "value": values_list[0]},
+                                    {"breed": predict_list[1], "value": values_list[1]},
+                                    {"breed": predict_list[2], "value": values_list[2]}}}
 
         # GET 요청시 리턴 값에 해당 하는 dict를 JSON 형태로 반환
         return json_object
