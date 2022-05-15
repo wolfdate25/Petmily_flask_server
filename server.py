@@ -373,7 +373,7 @@ class GuessEmotion(Resource):
             outputs = [float(x) for x in output[0]]
             json_object = {"message": "success!",
                            "category": "cat", "crop_position": position[:-1],
-                           "emotion": {"angry": outputs[0], "sad": outputs[1], "happy": outputs[2]}}
+                           "emotion": {"angry": outputs[0], "happy": outputs[1], "sad": outputs[2]}}
             return json_object
         if any(result[0][16][:, 4] > 0.3):
             position = [int(i) for i in result[0][16][0]]
@@ -383,7 +383,7 @@ class GuessEmotion(Resource):
             outputs = [float(x) for x in output[0]]
             json_object = {"message": "success!",
                            "category": "dog", "crop_position": position[:-1],
-                           "emotion": {"angry": outputs[0], "sad": outputs[1], "happy": outputs[2]}}
+                           "emotion": {"angry": outputs[0], "happy": outputs[1], "sad": outputs[2]}}
             return json_object
 
         emotion_file_name = (emotion_file_name + 1) % 20
@@ -405,7 +405,7 @@ class GuessEmotion(Resource):
             outputs = [float(x) for x in output[0]]
             json_object = {"message": "success!",
                            "category": "cat", "crop_position": position[:-1],
-                           "emotion": {"angry": outputs[0], "sad": outputs[1], "happy": outputs[2]}}
+                           "emotion": {"angry": outputs[0], "happy": outputs[1], "sad": outputs[2]}}
             return json_object
         if any(result[0][16][:, 4] > 0.3):
             position = [int(i) for i in result[0][16][0]]
@@ -415,7 +415,7 @@ class GuessEmotion(Resource):
             outputs = [float(x) for x in output[0]]
             json_object = {"message": "success!",
                            "category": "dog", "crop_position": position[:-1],
-                           "emotion": {"angry": outputs[0], "sad": outputs[1], "happy": outputs[2]}}
+                           "emotion": {"angry": outputs[0], "happy": outputs[1], "sad": outputs[2]}}
             return json_object
 
         # GET 요청시 리턴 값에 해당 하는 dict를 JSON 형태로 반환
