@@ -71,7 +71,7 @@ class FindCatsAndDogs(Resource):
                     find = "cat"
                 if any(result[0][16].T[4] > 0.3):  # 개가 있으면
                     find = "dog"
-            
+
             return {"detected": find}
         except:
             json_object = {"message": "Image analysis error"}
@@ -97,13 +97,14 @@ class FindCatsAndDogs(Resource):
                     find = "cat"
                 if any(result[0][16].T[4] > 0.3):  # 개가 있으면
                     find = "dog"
-            
+
             return {"detected": find}
         except:
             json_object = {"message": "Image analysis error"}
 
         # GET 요청시 리턴 값에 해당 하는 dict를 JSON 형태로 반환
         return json_object
+
 
 @api.route('/predict/breed/dog', methods=['GET', 'POST'])
 class DistinguishDogBreed(Resource):
@@ -244,24 +245,24 @@ class DistinguishDogBreed(Resource):
         uploaded_file = args['file']
         path = f'imgs/dog{dog_file_name}.jpg'
         uploaded_file.save(path)
-        with Image.open(path).convert('RGB') as img:
-            try:
-                result = inference_detector(model, path)
-                json_object = {"error": "Can't find a dog"}
-                if any(result[0][16][:, 4] > 0.3):
-                    position = [int(i) for i in result[0][16][0]]
-                    img = img.crop(position[:-1])
-                    img = self.transformer(img)
-                    output = dog_model(img.unsqueeze(0).to(device))
-                    top3 = torch.topk(output, 3, dim=1)
-                    predict_list = [self.classes[x] for x in top3.indices.squeeze()]  # find dog breed
-                    values_list = [float(x) for x in top3.values.squeeze()]
-                    json_object = {"crop_position": position[:-1],
-                                   "top3": [{"breed": predict_list[0], "value": values_list[0]},
-                                            {"breed": predict_list[1], "value": values_list[1]},
-                                            {"breed": predict_list[2], "value": values_list[2]}]}
-            except:
-                json_object = {"message": "Image analysis error"}
+        try:
+            img = Image.open(path).convert('RGB')
+            result = inference_detector(model, path)
+            json_object = {"error": "Can't find a dog"}
+            if any(result[0][16][:, 4] > 0.3):
+                position = [int(i) for i in result[0][16][0]]
+                img = img.crop(position[:-1])
+                img = self.transformer(img)
+                output = dog_model(img.unsqueeze(0).to(device))
+                top3 = torch.topk(output, 3, dim=1)
+                predict_list = [self.classes[x] for x in top3.indices.squeeze()]  # find dog breed
+                values_list = [float(x) for x in top3.values.squeeze()]
+                json_object = {"crop_position": position[:-1],
+                               "top3": [{"breed": predict_list[0], "value": values_list[0]},
+                                        {"breed": predict_list[1], "value": values_list[1]},
+                                        {"breed": predict_list[2], "value": values_list[2]}]}
+        except:
+            json_object = {"message": "Image analysis error"}
             dog_file_name = (dog_file_name + 1) % 20
         # GET 요청시 리턴 값에 해당 하는 dict를 JSON 형태로 반환
         return json_object
@@ -270,24 +271,24 @@ class DistinguishDogBreed(Resource):
         path = request.args.get('path')
         if path is None:
             return {"error": "The parameter path is not exist."}
-        with Image.open(path).convert('RGB') as img:
-            try:
-                result = inference_detector(model, path)
-                json_object = {"error": "Can't find a dog"}
-                if any(result[0][16][:, 4] > 0.3):
-                    position = [int(i) for i in result[0][16][0]]
-                    img = img.crop(position[:-1])
-                    img = self.transformer(img)
-                    output = dog_model(img.unsqueeze(0).to(device))
-                    top3 = torch.topk(output, 3, dim=1)
-                    predict_list = [self.classes[x] for x in top3.indices.squeeze()]  # find dog breed
-                    values_list = [float(x) for x in top3.values.squeeze()]
-                    json_object = {"crop_position": position[:-1],
-                                   "top3": [{"breed": predict_list[0], "value": values_list[0]},
-                                            {"breed": predict_list[1], "value": values_list[1]},
-                                            {"breed": predict_list[2], "value": values_list[2]}]}
-            except:
-                json_object = {"message": "Image analysis error"}
+        try:
+            img = Image.open(path).convert('RGB')
+            result = inference_detector(model, path)
+            json_object = {"error": "Can't find a dog"}
+            if any(result[0][16][:, 4] > 0.3):
+                position = [int(i) for i in result[0][16][0]]
+                img = img.crop(position[:-1])
+                img = self.transformer(img)
+                output = dog_model(img.unsqueeze(0).to(device))
+                top3 = torch.topk(output, 3, dim=1)
+                predict_list = [self.classes[x] for x in top3.indices.squeeze()]  # find dog breed
+                values_list = [float(x) for x in top3.values.squeeze()]
+                json_object = {"crop_position": position[:-1],
+                               "top3": [{"breed": predict_list[0], "value": values_list[0]},
+                                        {"breed": predict_list[1], "value": values_list[1]},
+                                        {"breed": predict_list[2], "value": values_list[2]}]}
+        except:
+            json_object = {"message": "Image analysis error"}
 
         # GET 요청시 리턴 값에 해당 하는 dict를 JSON 형태로 반환
         return json_object
@@ -315,24 +316,24 @@ class DistinguishCatBreed(Resource):
         uploaded_file = args['file']
         path = f'imgs/cat{cat_file_name}.jpg'
         uploaded_file.save(path)
-        with Image.open(path).convert('RGB') as img:
-            try:
-                result = inference_detector(model, path)
-                json_object = {"error": "Can't find a cat"}
-                if any(result[0][15][:, 4] > 0.3):
-                    position = [int(i) for i in result[0][15][0]]
-                    img = img.crop(position[:-1])
-                    img = self.transformer(img)
-                    output = cat_model(img.unsqueeze(0).to(device))
-                    top3 = torch.topk(output, 3, dim=1)
-                    predict_list = [self.classes[x] for x in top3.indices.squeeze()]  # find cat breed
-                    values_list = [float(x) for x in top3.values.squeeze()]
-                    json_object = {"crop_position": position[:-1],
-                                   "top3": [{"breed": predict_list[0], "value": values_list[0]},
-                                            {"breed": predict_list[1], "value": values_list[1]},
-                                            {"breed": predict_list[2], "value": values_list[2]}]}
-            except:
-                json_object = {"message": "Image analysis error"}
+        try:
+            img = Image.open(path).convert('RGB')
+            result = inference_detector(model, path)
+            json_object = {"error": "Can't find a cat"}
+            if any(result[0][15][:, 4] > 0.3):
+                position = [int(i) for i in result[0][15][0]]
+                img = img.crop(position[:-1])
+                img = self.transformer(img)
+                output = cat_model(img.unsqueeze(0).to(device))
+                top3 = torch.topk(output, 3, dim=1)
+                predict_list = [self.classes[x] for x in top3.indices.squeeze()]  # find cat breed
+                values_list = [float(x) for x in top3.values.squeeze()]
+                json_object = {"crop_position": position[:-1],
+                               "top3": [{"breed": predict_list[0], "value": values_list[0]},
+                                        {"breed": predict_list[1], "value": values_list[1]},
+                                        {"breed": predict_list[2], "value": values_list[2]}]}
+        except:
+            json_object = {"message": "Image analysis error"}
             cat_file_name = (cat_file_name + 1) % 20
         # GET 요청시 리턴 값에 해당 하는 dict를 JSON 형태로 반환
         return json_object
@@ -341,24 +342,24 @@ class DistinguishCatBreed(Resource):
         path = request.args.get('path')
         if path is None:
             return {"error": "The parameter path is not exist."}
-        with Image.open(path).convert('RGB') as img:
-            try:
-                result = inference_detector(model, path)
-                json_object = {"error": "Can't find a cat"}
-                if any(result[0][15][:, 4] > 0.3):
-                    position = [int(i) for i in result[0][15][0]]
-                    img = img.crop(position[:-1])
-                    img = self.transformer(img)
-                    output = cat_model(img.unsqueeze(0).to(device))
-                    top3 = torch.topk(output, 3, dim=1)
-                    predict_list = [self.classes[x] for x in top3.indices.squeeze()]  # find cat breed
-                    values_list = [float(x) for x in top3.values.squeeze()]
-                    json_object = {"crop_position": position[:-1],
-                                   "top3": [{"breed": predict_list[0], "value": values_list[0]},
-                                            {"breed": predict_list[1], "value": values_list[1]},
-                                            {"breed": predict_list[2], "value": values_list[2]}]}
-            except:
-                json_object = {"message": "Image analysis error"}
+        try:
+            img = Image.open(path).convert('RGB')
+            result = inference_detector(model, path)
+            json_object = {"error": "Can't find a cat"}
+            if any(result[0][15][:, 4] > 0.3):
+                position = [int(i) for i in result[0][15][0]]
+                img = img.crop(position[:-1])
+                img = self.transformer(img)
+                output = cat_model(img.unsqueeze(0).to(device))
+                top3 = torch.topk(output, 3, dim=1)
+                predict_list = [self.classes[x] for x in top3.indices.squeeze()]  # find cat breed
+                values_list = [float(x) for x in top3.values.squeeze()]
+                json_object = {"crop_position": position[:-1],
+                               "top3": [{"breed": predict_list[0], "value": values_list[0]},
+                                        {"breed": predict_list[1], "value": values_list[1]},
+                                        {"breed": predict_list[2], "value": values_list[2]}]}
+        except:
+            json_object = {"message": "Image analysis error"}
         # GET 요청시 리턴 값에 해당 하는 dict를 JSON 형태로 반환
         return json_object
 
@@ -382,32 +383,32 @@ class GuessEmotion(Resource):
         uploaded_file = args['file']
         path = f'imgs/emotion{emotion_file_name}.jpg'
         uploaded_file.save(path)
-        with Image.open(path).convert('L') as img:
-            try:
-                result = inference_detector(model, path)
-                json_object = {"message": "Can't find cat or dog"}
-                if any(result[0][15][:, 4] > 0.3):
-                    position = [int(i) for i in result[0][15][0]]
-                    img = img.crop(position[:-1])
-                    img = self.transformer(img)
-                    output = emotion_model(img.unsqueeze(0).to(device))
-                    outputs = [float(x) for x in output[0]]
-                    json_object = {"message": "success!",
-                                   "category": "cat", "crop_position": position[:-1],
-                                   "emotion": {"angry": outputs[0], "happy": outputs[1], "sad": outputs[2]}}
-                    return json_object
-                if any(result[0][16][:, 4] > 0.3):
-                    position = [int(i) for i in result[0][16][0]]
-                    img = img.crop(position[:-1])
-                    img = self.transformer(img)
-                    output = emotion_model(img.unsqueeze(0).to(device))
-                    outputs = [float(x) for x in output[0]]
-                    json_object = {"message": "success!",
-                                   "category": "dog", "crop_position": position[:-1],
-                                   "emotion": {"angry": outputs[0], "happy": outputs[1], "sad": outputs[2]}}
-                    return json_object
-            except:
-                json_object = {"message": "Image analysis error"}
+        try:
+            img = Image.open(path).convert('L')
+            result = inference_detector(model, path)
+            json_object = {"message": "Can't find cat or dog"}
+            if any(result[0][15][:, 4] > 0.3):
+                position = [int(i) for i in result[0][15][0]]
+                img = img.crop(position[:-1])
+                img = self.transformer(img)
+                output = emotion_model(img.unsqueeze(0).to(device))
+                outputs = [float(x) for x in output[0]]
+                json_object = {"message": "success!",
+                               "category": "cat", "crop_position": position[:-1],
+                               "emotion": {"angry": outputs[0], "happy": outputs[1], "sad": outputs[2]}}
+                return json_object
+            if any(result[0][16][:, 4] > 0.3):
+                position = [int(i) for i in result[0][16][0]]
+                img = img.crop(position[:-1])
+                img = self.transformer(img)
+                output = emotion_model(img.unsqueeze(0).to(device))
+                outputs = [float(x) for x in output[0]]
+                json_object = {"message": "success!",
+                               "category": "dog", "crop_position": position[:-1],
+                               "emotion": {"angry": outputs[0], "happy": outputs[1], "sad": outputs[2]}}
+                return json_object
+        except:
+            json_object = {"message": "Image analysis error"}
 
             emotion_file_name = (emotion_file_name + 1) % 20
         # GET 요청시 리턴 값에 해당 하는 dict를 JSON 형태로 반환
@@ -417,32 +418,32 @@ class GuessEmotion(Resource):
         path = request.args.get('path')
         if path is None:
             return {"message": "The parameter path is not exist."}
-        with Image.open(path).convert('L') as img:
-            try:
-                result = inference_detector(model, path)
-                json_object = {"message": "Can't find cat or dog"}
-                if any(result[0][15][:, 4] > 0.3):
-                    position = [int(i) for i in result[0][15][0]]
-                    img = img.crop(position[:-1])
-                    img = self.transformer(img)
-                    output = emotion_model(img.unsqueeze(0).to(device))
-                    outputs = [float(x) for x in output[0]]
-                    json_object = {"message": "success!",
-                                   "category": "cat", "crop_position": position[:-1],
-                                   "emotion": {"angry": outputs[0], "happy": outputs[1], "sad": outputs[2]}}
-                    return json_object
-                if any(result[0][16][:, 4] > 0.3):
-                    position = [int(i) for i in result[0][16][0]]
-                    img = img.crop(position[:-1])
-                    img = self.transformer(img)
-                    output = emotion_model(img.unsqueeze(0).to(device))
-                    outputs = [float(x) for x in output[0]]
-                    json_object = {"message": "success!",
-                                   "category": "dog", "crop_position": position[:-1],
-                                   "emotion": {"angry": outputs[0], "happy": outputs[1], "sad": outputs[2]}}
-                    return json_object
-            except:
-                json_object = {"message": "Image analysis error"}
+        try:
+            img = Image.open(path).convert('L')
+            result = inference_detector(model, path)
+            json_object = {"message": "Can't find cat or dog"}
+            if any(result[0][15][:, 4] > 0.3):
+                position = [int(i) for i in result[0][15][0]]
+                img = img.crop(position[:-1])
+                img = self.transformer(img)
+                output = emotion_model(img.unsqueeze(0).to(device))
+                outputs = [float(x) for x in output[0]]
+                json_object = {"message": "success!",
+                               "category": "cat", "crop_position": position[:-1],
+                               "emotion": {"angry": outputs[0], "happy": outputs[1], "sad": outputs[2]}}
+                return json_object
+            if any(result[0][16][:, 4] > 0.3):
+                position = [int(i) for i in result[0][16][0]]
+                img = img.crop(position[:-1])
+                img = self.transformer(img)
+                output = emotion_model(img.unsqueeze(0).to(device))
+                outputs = [float(x) for x in output[0]]
+                json_object = {"message": "success!",
+                               "category": "dog", "crop_position": position[:-1],
+                               "emotion": {"angry": outputs[0], "happy": outputs[1], "sad": outputs[2]}}
+                return json_object
+        except:
+            json_object = {"message": "Image analysis error"}
 
         # GET 요청시 리턴 값에 해당 하는 dict를 JSON 형태로 반환
         return json_object
