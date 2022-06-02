@@ -1,4 +1,5 @@
 # Petmily Flask 서버
+[2022 캡스톤 프로젝트](https://github.com/bagoonichanger/Petmliy_android_app)
 ## 개요
 Petmily 앱의 감정 분석, 종 분류, 개고양이 탐지와 같은 이미지 처리를 담당하는 서버이다. Flask와 PyTorch를 이용하여 구성했다.
 
@@ -12,12 +13,12 @@ Petmily 앱의 감정 분석, 종 분류, 개고양이 탐지와 같은 이미�
 ## 사용한 모델
 ### Swin Transformer
 ![swin](https://github.com/wolfdate25/Petmily_flask_server/blob/main/imgs/swin.png)
-이미지를 여러 윈도우로 분할하고 연산 중 레이어에 윈도우를 하나씩 합치는 구조이다.
+이미지를 여러 윈도우로 분할하고 연산 중 레이어에 윈도우를 하나씩 합치는 구조이다.  
 다양한 크기의 엔티티를 처리할 수 있고, 계산량을 크게 늘리지 않는 ViT 기반 모델이다.
 
 ### CoAtNet
 ![CoAtNet](https://github.com/wolfdate25/Petmily_flask_server/blob/main/imgs/coatnet.png?raw=true)
-CNN과 Transformer의 장점을 합친 모델이다.
+CNN과 Transformer의 장점을 합친 모델이다.  
 적은 양의 데이터 셋과 작은 모델 크기에도 불구하고 뛰어난 성능을 보여준다. 
 
 ## 사용한 데이터셋
@@ -26,3 +27,5 @@ CNN과 Transformer의 장점을 합친 모델이다.
 3. 묘종 분류 - 자체 구축
 4. 감정 분석 - 자체 구축
 
+## 사전학습된 모델
+[GDrive](https://drive.google.com/drive/folders/16yLD9X_-eXEqMnPpPdVCu97rNOeRsAwL?usp=sharing)
