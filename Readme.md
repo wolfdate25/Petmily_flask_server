@@ -27,5 +27,5 @@ CNN과 Transformer의 장점을 합친 모델이다.
 3. 묘종 분류 - 자체 구축
 4. 감정 분석 - 자체 구축
 
-## 사전학습된 모델
+## 모델
 [GDrive](https://drive.google.com/drive/folders/16yLD9X_-eXEqMnPpPdVCu97rNOeRsAwL?usp=sharing)
