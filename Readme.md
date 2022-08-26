@@ -28,4 +28,4 @@ CNN과 Transformer의 장점을 합친 모델이다.
 4. 감정 분석 - 자체 구축
 
 ## 모델
-[GDrive](https://drive.google.com/drive/folders/16yLD9X_-eXEqMnPpPdVCu97rNOeRsAwL?usp=sharing) 2022-07부로 구글 대학교 계정 드라이브 정책에 의해  
+[GDrive](https://drive.google.com/drive/folders/16yLD9X_-eXEqMnPpPdVCu97rNOeRsAwL?usp=sharing) 2022-07부로 구글 대학교 계정 드라이브 정책에 의해 
